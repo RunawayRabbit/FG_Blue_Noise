@@ -1,19 +1,23 @@
 ﻿using System;
 using UnityEngine;
 
-[Serializable]
 public class StupidVersion : ISpatialPartition
 {
 	private GameObject[] _objects;
 	private int          _objectCount;
 
-	private GameObject _prefab;
-	private Transform _parent;
+	private GameObject                    _prefab;
+	private Transform                     _parent;
+	private Func<Vector3, Vector3, float> _measure;
 
-	public StupidVersion( GameObject prefab, Transform parent, int capacity )
+	public StupidVersion( GameObject                    prefab,
+						  Transform                     parent,
+						  Func<Vector3, Vector3, float> measure,
+						  int                           capacity )
 	{
-		_prefab = prefab;
-		_parent = parent;
+		_prefab  = prefab;
+		_parent  = parent;
+		_measure = measure;
 
 		_objects     = new GameObject[capacity];
 		_objectCount = 0;
@@ -33,14 +37,24 @@ public class StupidVersion : ISpatialPartition
 			 i < _objectCount;
 			 i++ )
 		{
-			float sqDistance = (_objects[i].transform.position - queryPoint)
-			   .sqrMagnitude;
+			float sqDistance =
+				_measure( _objects[i].transform.position, queryPoint );
 
 			if( sqDistance < outSqDist )
 			{
 				outSqDist     = sqDistance;
 				nearestObject = _objects[i];
 			}
+		}
+	}
+
+	public void DebugFindNearestPoint( Vector3        queryPoint,
+									   out GameObject nearestObject,
+									   out float      outSqDist )
+	{
+		using( new KristerTimer( "FindNearestPoint call (Stupid Version)", 1 ) )
+		{
+			FindNearestPoint( queryPoint, out nearestObject, out outSqDist );
 		}
 	}
 
@@ -51,6 +65,4 @@ public class StupidVersion : ISpatialPartition
 														   Quaternion.identity,
 														   _parent );
 	}
-
-	public void Build() { }
 }

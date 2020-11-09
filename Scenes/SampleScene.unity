@@ -464,7 +464,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1003107897}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.98, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 963194228}
@@ -514,17 +514,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   prefab: {fileID: 5454263950194755205, guid: 46b843f77a9fea84a9969795acdeaa29, type: 3}
-  numObjects: 256
+  numObjects: 512
   sampleMultiplier: 1
-  maxDist: 50
-  minDist: 5
-  maxHeight: 5
-  spatialPartition:
-    id: 0
-  references:
-    version: 1
-    00000000:
-      type: {class: , ns: , asm: }
+  regionRadius: 50
+  regionHeight: 5
 --- !u!4 &1717445780
 Transform:
   m_ObjectHideFlags: 0

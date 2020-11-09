@@ -7,6 +7,4 @@ public interface ISpatialPartition
 						   out float      nearestSqDist );
 
 	void Insert( Vector3 position );
-
-	void Build();
 }

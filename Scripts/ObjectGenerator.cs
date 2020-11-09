@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿#define KDTREE
+
+using UnityEngine;
 
 public class ObjectGenerator : MonoBehaviour
 {
@@ -12,6 +14,42 @@ public class ObjectGenerator : MonoBehaviour
 
 	private float _halfRegionHeight;
 
+	static float SqEuclidean( Vector3 a, Vector3 b ) => (a - b).sqrMagnitude;
+
+	static float Euclidean( Vector3 a, Vector3 b ) => (a - b).magnitude;
+
+	static float SqRectilinear( Vector3 a, Vector3 b )
+	{
+		return (a.x - b.x).Square()
+			   + (a.y - b.y).Square()
+			   + (a.z - b.z).Square();
+	}
+
+	static float Rectilinear( Vector3 a, Vector3 b )
+	{
+		return Mathfs.Abs( a.x - b.x )
+			   + Mathfs.Abs( a.y - b.y )
+			   + Mathfs.Abs( a.z - b.z );
+	}
+
+	static float Chebyshev( Vector3 a, Vector3 b )
+	{
+		var dist = a - b;
+
+		return Mathfs.Max( Mathfs.Abs( dist.x ),
+						   Mathfs.Abs( dist.y ),
+						   Mathfs.Abs( dist.z ) );
+	}
+
+	static float SqChebyshev( Vector3 a, Vector3 b )
+	{
+		var dist = a - b;
+
+		return Mathfs.Max( dist.x.Square(),
+						   dist.y.Square(),
+						   dist.z.Square() );
+	}
+
 	private void Awake()
 	{
 		Debug.Assert( numObjects > 1 );
@@ -21,9 +59,32 @@ public class ObjectGenerator : MonoBehaviour
 
 	private void Start()
 	{
-		using( new KristerTimer( $"Blue-Noise Generator (Shitty Version, {numObjects} objects)", 1 ) )
+#if STUPID
+		using( new KristerTimer(
+			$"Blue-Noise Generator (Shitty Version, {numObjects} objects)",
+			1 ) )
 		{
-			spatialPartition = new StupidVersion( prefab, transform, numObjects );
+			spatialPartition =
+				new StupidVersion( prefab,
+								   transform,
+								   SqRectilinear,
+								   numObjects );
+#elif KDTREE
+		using( new KristerTimer( $"Blue-Noise Generator (k-d Tree Version, {numObjects} objects)", 1 ) )
+		{
+			spatialPartition =
+				new KdTree( prefab, transform, SqEuclidean, numObjects );
+#elif OCTREE
+		using( new KristerTimer( $"Blue-Noise Generator (Octree Version, {numObjects} objects)", 1 ) )
+		{
+			spatialPartition = new Octree( prefab, transform, numObjects );
+#elif OFFSETOCTREE
+		using( new KristerTimer( $"Blue-Noise Generator (Offset Octree Version, {numObjects} objects)", 1 ) )
+		{
+			spatialPartition =
+ new OffsetOctree( prefab, transform, numObjects );
+#endif
+
 			spatialPartition.Insert( Vector3.zero );
 
 			for( int pointIndex = 1;
@@ -39,9 +100,10 @@ public class ObjectGenerator : MonoBehaviour
 				{
 					var candidate = GenerateRandomPoint();
 
+					float sqDistance = float.MinValue;
 					spatialPartition.FindNearestPoint( candidate,
 													   out GameObject ignored,
-													   out float sqDistance );
+													   out sqDistance );
 
 					if( sqDistance > bestSqDistance )
 					{
@@ -52,8 +114,6 @@ public class ObjectGenerator : MonoBehaviour
 
 				spatialPartition.Insert( bestCandidate );
 			}
-
-			spatialPartition.Build();
 		}
 	}
 
@@ -63,7 +123,8 @@ public class ObjectGenerator : MonoBehaviour
 		Vector2 randomDirection = Random.onUnitSphere * randomDistance;
 
 		return new Vector3( randomDirection.x,
-							Random.Range( -_halfRegionHeight, _halfRegionHeight ),
+							Random.Range( -_halfRegionHeight,
+										  _halfRegionHeight ),
 							randomDirection.y );
 	}
 }

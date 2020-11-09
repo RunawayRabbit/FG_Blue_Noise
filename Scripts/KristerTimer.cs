@@ -27,7 +27,7 @@ public class KristerTimer : IDisposable
 		else
 			average = $"{(averageInMilliseconds):0.00}ms";
 
-		UnityEngine.Debug.Log($"{_name}\n"
+		UnityEngine.Debug.LogError($"{_name}\n"
 							  + $"Average: {average} | "
 							  + $"Total: {totalInMilliseconds:0.00}ms ");
 	}
